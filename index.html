@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexaBank &amp; GiftHub — Digital Banking Ecosystem</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #0b1120; color: #f8fafc; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .card-gradient {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1d4ed8 100%);
+    }
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Navigation -->
+  <header class="sticky top-0 z-40 glass border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center font-extrabold text-white shadow-lg shadow-blue-600/30">
+          N
+        </div>
+        <div>
+          <span class="font-bold text-lg tracking-tight text-white">NexaBank</span>
+          <span class="ml-1.5 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+            + GiftHub
+          </span>
+        </div>
+      </div>
+
+      <!-- View Switcher -->
+      <nav class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+        <button onclick="switchView('bank')" id="tab-bank"
+          class="view-tab px-3.5 py-1.5 rounded-lg text-sm font-semibold transition bg-blue-600 text-white">
+          Bank &amp; Wallet
+        </button>
+        <button onclick="switchView('gifthub')" id="tab-gifthub"
+          class="view-tab px-3.5 py-1.5 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white">
+          GiftHub Store
+        </button>
+        <button onclick="switchView('admin')" id="tab-admin"
+          class="view-tab px-3.5 py-1.5 rounded-lg text-sm font-semibold transition text-slate-400 hover:text-white flex items-center gap-1.5">
+          <span>Admin Control</span>
+          <span id="flagged-badge" class="hidden px-1.5 py-0.2 text-xs rounded-full bg-amber-500 text-slate-950 font-bold">0</span>
+        </button>
+      </nav>
+
+      <!-- Account Status Pill -->
+      <div class="flex items-center gap-2.5 text-xs">
+        <span id="account-status-pill" class="px-2.5 py-1 rounded-full font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+          ● Active Account
+        </span>
+        <span class="text-slate-400 hidden sm:inline">ID: <strong class="text-slate-200 mono">NX-88412</strong></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Frozen Banner -->
+  <div id="frozen-banner" class="hidden bg-rose-600/95 text-white text-center text-sm font-semibold py-2.5 px-4">
+    ⚠️ Your NexaBank account is currently FROZEN by Administration. Outgoing transfers, FX swaps, and GiftHub purchases are disabled.
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden max-w-sm rounded-xl px-4 py-3 text-sm font-medium shadow-2xl border"></div>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+
+    <!-- ==================== 1. BANK & WALLET VIEW ==================== -->
+    <section id="view-bank" class="space-y-6">
+      <!-- Top Row: Multi-currency Balances + Virtual Card -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Multi-currency Wallets -->
+        <div class="lg:col-span-2 glass rounded-2xl p-5 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Total Estimated Liquidity</p>
+              <h1 id="total-liquidity" class="text-3xl sm:text-4xl font-extrabold text-white mt-1 mono">$24,850.00</h1>
+            </div>
+            <button onclick="openDepositModal()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition">
+              + Quick Deposit
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-2">
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
+              <div class="flex items-center justify-between text-xs text-slate-400">
+                <span>US Dollar</span>
+                <span class="font-bold text-blue-400">USD</span>
+              </div>
+              <p id="bal-USD" class="text-xl font-bold text-white mt-2 mono">$18,450.00</p>
+              <p class="text-[11px] text-slate-500 mt-1">Primary Checking</p>
+            </div>
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
+              <div class="flex items-center justify-between text-xs text-slate-400">
+                <span>Euro Vault</span>
+                <span class="font-bold text-indigo-400">EUR</span>
+              </div>
+              <p id="bal-EUR" class="text-xl font-bold text-white mt-2 mono">€3,800.00</p>
+              <p class="text-[11px] text-slate-500 mt-1">1 EUR = 1.08 USD</p>
+            </div>
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
+              <div class="flex items-center justify-between text-xs text-slate-400">
+                <span>British Pound</span>
+                <span class="font-bold text-purple-400">GBP</span>
+              </div>
+              <p id="bal-GBP" class="text-xl font-bold text-white mt-2 mono">£1,800.00</p>
+              <p class="text-[11px] text-slate-500 mt-1">1 GBP = 1.27 USD</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Virtual Visa Card -->
+        <div class="card-gradient rounded-2xl p-5 border border-blue-400/20 shadow-xl flex flex-col justify-between relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-widest text-blue-200">Nexa Infinite</span>
+            <span id="card-badge" class="text-xs px-2 py-0.5 rounded-full bg-white/15 text-white font-semibold">ACTIVE</span>
+          </div>
+
+          <div class="my-6">
+            <p class="text-xs text-blue-200/80 mb-1">Virtual Debit Card</p>
+            <p id="card-number" class="mono text-lg sm:text-xl font-bold tracking-widest text-white">
+              4532 •••• •••• 8914
+            </p>
+            <div class="flex items-center gap-6 mt-3 text-xs text-blue-100">
+              <div>
+                <span class="block text-[10px] uppercase text-blue-300">Expires</span>
+                <span class="mono font-semibold">09/29</span>
+              </div>
+              <div>
+                <span class="block text-[10px] uppercase text-blue-300">CVV</span>
+                <span id="card-cvv" class="mono font-semibold">•••</span>
+              </div>
+              <div>
+                <span class="block text-[10px] uppercase text-blue-300">Holder</span>
+                <span class="font-semibold">ROBERT CHEN</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="toggleCardDetails()" id="btn-reveal-card"
+              class="flex-1 py-2 px-3 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-semibold text-white transition">
+              Reveal Details
+            </button>
+            <button onclick="toggleCardFreeze()" id="btn-freeze-card"
+              class="flex-1 py-2 px-3 rounded-xl bg-slate-950/60 hover:bg-slate-950/80 text-xs font-semibold text-amber-300 transition">
+              Freeze Card
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Middle Row: P2P Transfer, FX Swap, Utility Bill Pay -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- P2P Transfer -->
+        <div class="glass rounded-2xl p-5">
+          <h2 class="font-bold text-base text-white mb-1">Send Money (P2P / Wire)</h2>
+          <p class="text-xs text-slate-400 mb-4">Transfers over $5,000 trigger Admin Compliance review.</p>
+          <form onsubmit="handleTransfer(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Recipient Name or @Handle</label>
+              <input id="tx-recipient" type="text" required placeholder="e.g. @sarah.k or IBAN"
+                class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-blue-500" />
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Currency</label>
+                <select id="tx-currency" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white">
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Amount</label>
+                <input id="tx-amount" type="number" step="0.01" min="1" required placeholder="250.00"
+                  class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white mono" />
+              </div>
+            </div>
+            <button type="submit" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-sm font-semibold text-white transition">
+              Send Funds Now
+            </button>
+          </form>
+        </div>
+
+        <!-- Instant FX Swap -->
+        <div class="glass rounded-2xl p-5">
+          <h2 class="font-bold text-base text-white mb-1">Instant FX Currency Swap</h2>
+          <p class="text-xs text-slate-400 mb-4">Zero-fee interbank live conversion across wallets.</p>
+          <form onsubmit="handleFxSwap(event)" class="space-y-3">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">From</label>
+                <select id="fx-from" onchange="updateFxPreview()" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white">
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">To</label>
+                <select id="fx-to" onchange="updateFxPreview()" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white">
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                  <option value="USD">USD</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Amount to Convert</label>
+              <input id="fx-amount" type="number" step="0.01" min="1" required placeholder="500.00" oninput="updateFxPreview()"
+                class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white mono" />
+            </div>
+            <p id="fx-preview" class="text-xs text-emerald-400 mono">Estimated output: 0.00 EUR</p>
+            <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold text-white transition">
+              Convert Currency
+            </button>
+          </form>
+        </div>
+
+        <!-- Quick Utility & Bill Pay -->
+        <div class="glass rounded-2xl p-5">
+          <h2 class="font-bold text-base text-white mb-1">Utility &amp; Bill Pay</h2>
+          <p class="text-xs text-slate-400 mb-4">Instant settlement from your primary USD account.</p>
+          <form onsubmit="handleBillPay(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Biller Category</label>
+              <select id="bill-biller" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white">
+                <option value="City Power & Electric">City Power &amp; Electric</option>
+                <option value="FiberNet Gigabit Internet">FiberNet Gigabit Internet</option>
+                <option value="Metro Water Utility">Metro Water Utility</option>
+                <option value="Cloud Mobile Postpaid">Cloud Mobile Postpaid</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Bill Amount (USD)</label>
+              <input id="bill-amount" type="number" step="0.01" min="1" required placeholder="85.50"
+                class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white mono" />
+            </div>
+            <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-white transition mt-2">
+              Pay Utility Bill
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Transaction Ledger -->
+      <div class="glass rounded-2xl p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <h2 class="font-bold text-base text-white">Recent Account Ledger</h2>
+          <span class="text-xs text-slate-400">Real-time synced with Admin Audit Log</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr class="border-b border-slate-800 text-xs uppercase text-slate-400">
+                <th class="py-2.5 px-3">Ref ID</th>
+                <th class="py-2.5 px-3">Description</th>
+                <th class="py-2.5 px-3">Type</th>
+                <th class="py-2.5 px-3">Amount</th>
+                <th class="py-2.5 px-3">Status</th>
+                <th class="py-2.5 px-3">Time</th>
+              </tr>
+            </thead>
+            <tbody id="user-tx-table" class="divide-y divide-slate-800/70"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 2. GIFTHUB STORE VIEW ==================== -->
+    <section id="view-gifthub" class="hidden space-y-6">
+      <!-- GiftHub Header Banner -->
+      <div class="glass rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-emerald-500/20">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">GiftHub Digital Marketplace</span>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">Instant Digital Gift Cards</h1>
+          <p class="text-sm text-slate-400 mt-1">Pay directly with your NexaBank USD balance and unlock instant redemption codes.</p>
+        </div>
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-3">
+          <span class="block text-xs text-slate-400">Available USD Balance</span>
+          <span id="gifthub-usd-bal" class="text-xl font-extrabold text-emerald-400 mono">$18,450.00</span>
+        </div>
+      </div>
+
+      <!-- Category Filter -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="filterGifts('All')" class="gift-filter px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-blue-600 text-white">All Brands</button>
+        <button onclick="filterGifts('Shopping')" class="gift-filter px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">Shopping</button>
+        <button onclick="filterGifts('Gaming & Tech')" class="gift-filter px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">Gaming &amp; Tech</button>
+        <button onclick="filterGifts('Entertainment')" class="gift-filter px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">Entertainment</button>
+        <button onclick="filterGifts('Food & Rides')" class="gift-filter px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white">Food &amp; Rides</button>
+      </div>
+
+      <!-- Gift Cards Grid -->
+      <div id="gifthub-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+
+      <!-- Purchased Gift Card Vault -->
+      <div class="glass rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="font-bold text-base text-white">My Purchased Vault</h2>
+            <p class="text-xs text-slate-400">Click any code to copy it to your clipboard.</p>
+          </div>
+          <span id="vault-
